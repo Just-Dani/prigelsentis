@@ -1,0 +1,9 @@
+# Ignore Python virtual environments
+myenv/
+
+# Ignore large model files
+app/models/*.pkl
+
+# Ignore compiled binaries
+*.dll
+*.lib
