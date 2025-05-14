@@ -1,6 +1,7 @@
 import os
 import csv
 import time
+import random
 from pymongo import MongoClient
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
@@ -22,22 +23,25 @@ def openselenium():
     driver.add_experimental_option("detach", True)
     driver.add_argument("--start-maximized")
     driver = webdriver.Chrome(service=ChromeService(ChromeDriverManager().install()), options=driver)
-    driver.get("https://www.instagram.com/")
+    driver.get("https://web.facebook.com/")
     return driver
 
+def human_like_typing(element, text):
+    for character in text:
+        element.send_keys(character)
+        time.sleep(random.uniform(0.1, 0.6))
+
 def login(driver, username_str, password_str):
-    username = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, "username")))
-    password = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, "password")))
+    username = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, "email")))
+    password = WebDriverWait(driver, 10).until(EC.element_to_be_clickable((By.NAME, "pass")))
 
     username.clear()
     password.clear()
-    username.send_keys(username_str)
-    password.send_keys(password_str)
+    human_like_typing(username, username_str)
+    human_like_typing(password, password_str)
 
     driver.find_element(By.CSS_SELECTOR, "button[type='submit']").click()
-    time.sleep(3)
-
-    input("Complete CAPTCHA if required, then press Enter to continue...")
+    time.sleep(5)
 
 def search(driver, keyword):
     search_box = WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, "//span[text()='Search']")))
@@ -154,8 +158,8 @@ def save_mongo(filename):
         
 def main():
     driver = openselenium()
-    login(driver, "yourEmail", "yourPassword")
-    search(driver, "unnesshitpost")
+    login(driver, "sentis2872", "SENTISprigel")
+    search(driver, "pesanunnes")
     links = get_link(driver)
     print(links)
     visit_links(driver, links)
