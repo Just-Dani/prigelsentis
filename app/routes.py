@@ -16,6 +16,7 @@ db = client.db_analisis_sentimen
 users_collection = db.users
 tweets_collection = db.tweets
 instagram_collection = db.instagram
+facebook_collection = db.facebook
 
 bcrypt = Bcrypt(app) 
 app.secret_key = secrets.token_hex(16)
@@ -32,6 +33,14 @@ def delete_tweet_data(id):
 @app.route('/delete_instagram_data/<string:id>', methods=['DELETE'])
 def delete_instagram_data(id):
     result = instagram_collection.delete_one({'_id': ObjectId(id)})
+    if result.deleted_count == 1:
+        return jsonify({'status': 'success', 'message': 'Data deleted successfully'})
+    else:
+        return jsonify({'status': 'error', 'message': 'Data not found'}), 404
+
+@app.route('/delete_facebook_data/<string:id>', methods=['DELETE'])
+def delete_facebook_data(id):
+    result = facebook_collection.delete_one({'_id': ObjectId(id)})
     if result.deleted_count == 1:
         return jsonify({'status': 'success', 'message': 'Data deleted successfully'})
     else:

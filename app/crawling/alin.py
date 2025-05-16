@@ -8,6 +8,7 @@ import time
 import random
 import pymongo
 import json
+import schedule
 
 email = "johnwick67319@gmail.com"
 password = "herofavorit123"
@@ -15,7 +16,7 @@ driver = None
 target = "https://www.facebook.com/cnn"
 
 
-def initialize_driver(driver):
+def initialize_driver():
     options = webdriver.EdgeOptions()
     options.add_argument("--disable-blink-features=AutomationControlled")
     options.add_experimental_option("excludeSwitches", ["enable-automation"])
@@ -202,6 +203,11 @@ def visit_links(driver, post_links):
         if comments:
             for idx, comment in enumerate(comments, start=1):
                 print(f"{idx}. Username: {comment['username']}, Comment: {comment['comment']}")
+                all_comments.append({
+                    "URL": post_link,
+                    "Username": comment["username"],
+                    "Comment": comment["comment"]
+                })
         else:
             print("No comments found for this post.")
         
@@ -214,33 +220,52 @@ def save_mongo(data):
     db = client["db_analisis_sentimen"]
     collection = db["facebook"]
 
+    inserted_count = 0
     for item in data:
-        collection.insert_one(item)
+        existing = collection.find_one({
+            "URL": item["URL"],
+            "Username": item["Username"],
+            "Comment": item["Comment"]
+        })
 
-    print(f"Saved {len(data)} comments to MongoDB.")
+        if not existing:
+            collection.insert_one(item)
+            inserted_count += 1
+
+    print(f"Saved {inserted_count} new comments to MongoDB.")
 
 def close(driver):
     if driver:
         driver.quit()
 
-if __name__ == "__main__":
-    try:
-        driver = initialize_driver(driver)
-        
-        login(driver, email, password)
-
-        navigate_to_profile(driver, target)
-
-        posts_links = take_link(driver, max_links=10)
-
-        for link in posts_links:
-            print(link)
-
-        all_comments = visit_links(driver, posts_links)
-        
-        #save_mongo(all_comments)
-        
-        time.sleep(2)
+def main():
+    driver = initialize_driver()
     
-    finally:
-        close(driver)
+    login(driver, email, password)
+
+    navigate_to_profile(driver, target)
+
+    posts_links = take_link(driver, max_links=10)
+
+    for link in posts_links:
+        print(link)
+
+    all_comments = visit_links(driver, posts_links)
+    
+    if all_comments:
+        save_mongo(all_comments)
+    else:
+        print("No comments were scraped?")
+    
+    time.sleep(2)
+
+def schedule_crawling():
+    main()
+    # schedule.every().day.at("13:25").do(main)  # Atur waktu sesuai kebutuhan Anda
+    
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(10)
+
+if __name__ == "__main__":
+    schedule_crawling()

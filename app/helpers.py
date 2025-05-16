@@ -154,6 +154,21 @@ def proses_sentimen_instagram(data):
     data = add_lexicon_grade(data, 'Comment')
     return data
 
+def proses_sentimen_facebook(data):
+    sentimen_list = []
+    for index, row in data.iterrows():
+        comment_text = row['Comment']
+        clean_tokens = tokenize(comment_text)
+        clean_tokens = translate_slang(clean_tokens)
+        clean_tokens = remove_stopwords(clean_tokens)
+        clean_text = stemming(clean_tokens)
+        sentiment = text_with_ensemble(clean_text)
+        sentimen_list.append(sentiment)
+    data['sentimen'] = sentimen_list
+    data = add_lexicon_grade(data, 'Comment')
+    return data
+
+
 def tabel_sentimen(tweets_collection):    
     tweets_cursor = tweets_collection.find({}, {'_id': 1, 'full_text': 1})
     data = pd.DataFrame(list(tweets_cursor))
@@ -178,6 +193,18 @@ def tabel_sentimen_instagram(insta_collection):
             insta_collection.update_one({'_id': row['_id']}, {'$set': {'sentimen': sentimen, 'grade': grade}})
     return data
 
+
+def tabel_sentimen_facebook(facebook_collection):
+    facebook_cursor = facebook_collection.find({}, {'_id': 1, 'Comment': 1})
+    data = pd.DataFrame(list(facebook_cursor))
+    if 'Comment' in data.columns:
+        data['Comment'] = data['Comment'].astype(str)
+        data = proses_sentimen_facebook(data)
+        for index, row in data.iterrows():
+            sentimen = row['sentimen']
+            grade = row['grade']
+            facebook_collection.update_one({'_id': row['_id']}, {'$set': {'sentimen': sentimen, 'grade': grade}})
+    return data
 # # Baca data dari file CSV
 # def load_test_data(file_path):
 #     data = pd.read_csv(file_path)
@@ -201,16 +228,17 @@ def tabel_sentimen_instagram(insta_collection):
 # test_proses_sentimen('book1.csv')
 
 
-def schedule_sentimen(tweets_collection, insta_collection, run_immediately=False):
+def schedule_sentimen(tweets_collection, insta_collection, facebook_collection, run_immediately=False):
     # Schedule the tasks for daily execution at 13:30
     schedule.every().day.at("13:30").do(tabel_sentimen, tweets_collection=tweets_collection)
     schedule.every().day.at("13:30").do(tabel_sentimen_instagram, insta_collection=insta_collection)
-    
+    schedule.every().day.at("13:30").do(tabel_sentimen_facebook, facebook_collection=facebook_collection)
     # If run_immediately is True, execute the tasks right now
     if run_immediately:
         print("Running sentiment analysis immediately...")
         tabel_sentimen(tweets_collection)  # Process Twitter data
         tabel_sentimen_instagram(insta_collection)  # Process Instagram data
+        tabel_sentimen_facebook(facebook_collection) # Process Facebook data
     
     # Keep the scheduler running in the background
     while True:
