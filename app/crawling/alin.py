@@ -261,7 +261,7 @@ def main():
 
 def schedule_crawling():
     main()
-    # schedule.every().day.at("13:25").do(main)  # Atur waktu sesuai kebutuhan Anda
+    # schedule.every().day.at("13:25").do(main)
     
     # while True:
     #     schedule.run_pending()

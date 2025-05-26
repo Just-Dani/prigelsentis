@@ -154,8 +154,8 @@ def save_mongo(filename):
         
 def main():
     driver = openselenium()
-    login(driver, "yourEmail", "yourPassword")
-    search(driver, "unnesshitpost")
+    login(driver, "sentis2872", "SENTISprigel")
+    search(driver, "pesanunnes")
     links = get_link(driver)
     print(links)
     visit_links(driver, links)
@@ -171,3 +171,4 @@ def schedule_crawling():
 if __name__ == "__main__":
     # main()
     schedule_crawling()
+    

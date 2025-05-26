@@ -96,6 +96,10 @@ def dashboard():
 def instagram():
     return render_template('index-insta.html')
 
+@app.route('/facebook')
+def facebook():
+    return render_template('index-face.html')
+
 @app.route('/instagram-positif')
 def instagram_positif():
     return render_template('positif-insta.html')
@@ -119,6 +123,18 @@ def twitter_negatif():
 @app.route('/twitter-netral')
 def twitter_netral():
     return render_template('netral-tweet.html')
+
+@app.route('/facebook-positif')
+def facebook_positif():
+    return render_template('positif-face.html')
+
+@app.route('/facebook-negatif')
+def facebook_negatif():
+    return render_template('negatif-face.html')
+
+@app.route('/facebook-netral')
+def facebook_netral():
+    return render_template('netral-face.html')
 
 @app.route('/data', methods=['GET'])
 def get_data():

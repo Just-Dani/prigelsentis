@@ -26,8 +26,8 @@ if __name__ == '__main__':
     instagram_crawling_thread = threading.Thread(target=instagram_schedule_crawling)
     instagram_crawling_thread.start()
 
-    facebook_crawling_thread = threading.Thread(target=facebook_schedule_crawling)
-    facebook_crawling_thread.start()
+    #facebook_crawling_thread = threading.Thread(target=facebook_schedule_crawling)
+    #facebook_crawling_thread.start()
     
     sentiment_thread = threading.Thread(target=schedule_sentimen, args=(tweets_collection, insta_collection, facebook_collection, False))
     sentiment_thread.start()

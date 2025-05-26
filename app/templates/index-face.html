@@ -1,24 +1,21 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head> 
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
     <meta name="description" content="" />
     <meta name="author" content="" />
-    <title>Dashboard</title>
+    <title>Dashboard Facebook</title>
     <link href="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/style.min.css" rel="stylesheet" />
     <link href="{{ url_for('static', filename='css/styles.css') }}" rel="stylesheet" />
     <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
-
 </head>
 <body class="sb-nav-fixed">
     <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
         <a class="navbar-brand ps-3" href="{{ url_for('dashboard') }}">UNNESentimen</a>
         <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!"><i class="fas fa-bars"></i></button>
-
-        <!-- Icon lonceng di sini -->
-
+        
         <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
             <li class="nav-item dropdown">
                 <a class="nav-link" href="#" id="navbarDropdownNotification" role="button" data-bs-toggle="dropdown" aria-expanded="false">
@@ -29,8 +26,7 @@
                 </ul>
             </li>
         </ul>
-
-        <!-- Icon profil dan menu dropdown -->
+        
         <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false"><i class="fas fa-user fa-fw"></i></a>
@@ -56,7 +52,7 @@
                             <div class="sb-nav-link-icon"><i class="fab fa-instagram"></i></div>
                             Instagram Dashboard
                         </a>
-                        <a class="nav-link" href="/facebook">
+                        <a class="nav-link active" href="/facebook">
                             <div class="sb-nav-link-icon"><i class="fab fa-facebook"></i></div>
                             Facebook Dashboard
                         </a>
@@ -75,7 +71,7 @@
         <div id="layoutSidenav_content">
             <main>
                 <div class="container-fluid px-4">
-                    <h1 class="mt-4">Twitter Dashboard</h1>
+                    <h1 class="mt-4">Facebook Dashboard</h1>
                     <ol class="breadcrumb mb-4">
                         <li class="breadcrumb-item active"></li>
                     </ol>
@@ -86,7 +82,7 @@
                                     <h5 class="card-title">Positif</h5>
                                 </div>
                                 <div class="card-footer d-flex align-items-center justify-content-between">
-                                    <a class="small text-white stretched-link" href="{{ url_for('twitter_positif') }}">View Details</a>
+                                    <a class="small text-white stretched-link" href="{{ url_for('facebook_positif') }}">View Details</a>
                                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                 </div>
                             </div>
@@ -97,7 +93,7 @@
                                     <h5 class="card-title">Netral</h5>
                                 </div>
                                 <div class="card-footer d-flex align-items-center justify-content-between">
-                                    <a class="small text-white stretched-link" href="{{ url_for('twitter_netral') }}">View Details</a>
+                                    <a class="small text-white stretched-link" href="{{ url_for('facebook_netral') }}">View Details</a>
                                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                 </div>
                             </div>
@@ -108,7 +104,7 @@
                                     <h5 class="card-title">Negatif</h5>
                                 </div>
                                 <div class="card-footer d-flex align-items-center justify-content-between">
-                                    <a class="small text-white stretched-link" href="{{ url_for('twitter_negatif') }}">View Details</a>
+                                    <a class="small text-white stretched-link" href="{{ url_for('facebook_negatif') }}">View Details</a>
                                     <div class="small text-white"><i class="fas fa-angle-right"></i></div>
                                 </div>
                             </div>
@@ -118,12 +114,12 @@
                     <div class="card mb-4">
                         <div class="card-header">
                             <i class="fas fa-table me-1"></i>
-                            Tabel Sentimen
+                            Tabel Sentimen Facebook
                         </div>
                         <div class="card-body">
                             <div class="col-md-6 mb-3">
                                 <div class="input-group">
-                                    <input type="text" id="searchInput" class="form-control" placeholder="Search tweets...">
+                                    <input type="text" id="searchInput" class="form-control" placeholder="Search comments...">
                                     <button class="btn btn-primary" id="searchBtn">Search</button>
                                 </div>
                             </div>
@@ -131,9 +127,10 @@
                                 <thead>
                                     <tr>
                                         <th>Date</th>
-                                        <th>Tweet</th>
-                                        <th>Sentiments</th>
-                                        <th>Links</th>
+                                        <th>URL of the Post</th>
+                                        <th>Username</th>
+                                        <th>Comment</th>
+                                        <th>Sentimen</th>
                                         <th>Action</th>
                                     </tr>
                                 </thead>
@@ -141,9 +138,7 @@
                                     <!-- This is where the data will be dynamically inserted -->
                                 </tbody>
                             </table>
-                            
                         </div>
-                        
                     </div>
                 </div>
             </main>
@@ -156,13 +151,9 @@
             </footer>
         </div>
     </div>
-    <div class="container mt-4">
-        <a href="/instagram" class="btn btn-primary">Instagram</a>
-    </div>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/simple-datatables@7.1.2/dist/umd/simple-datatables.min.js" crossorigin="anonymous"></script>
-    <script src="{{ url_for('static', filename='js/twitter/index.js') }}"></script>
-    
+    <script src="{{ url_for('static', filename='js/facebook/index.js') }}"></script>
 </body>
 </html>
