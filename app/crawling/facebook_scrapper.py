@@ -13,8 +13,7 @@ import schedule
 email = "johnwick67319@gmail.com"
 password = "herofavorit123"
 driver = None
-target = "https://www.facebook.com/cnn"
-
+target = "https://www.facebook.com/unnesshitpost"
 
 def initialize_driver():
     options = webdriver.EdgeOptions()
@@ -29,8 +28,8 @@ def initialize_driver():
 def simulate_human_typing(element, text):
     for char in text:
         element.send_keys(char)
-        time.sleep(random.uniform(0.1, 0.3))
-        if random.random() < 0.1:
+        time.sleep(random.uniform(0.1, 0.5))
+        if random.random() < 0.2:
             time.sleep(random.uniform(0.3, 0.7))
 
 def login(driver, email, password):
@@ -53,7 +52,20 @@ def login(driver, email, password):
         .click()\
         .perform()
 
-    time.sleep(15)
+    time.sleep(30)
+
+def slow_scroll(driver, scroll_container=None, step=300):
+    """
+    Scrolls slowly within the specified scrollable container or the entire page.
+    """
+    if scroll_container:
+        # Scroll within the container
+        driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scroll_container, step)
+    else:
+        # Scroll the entire page
+        driver.execute_script(f"window.scrollBy(0, {step});")
+    
+    time.sleep(random.uniform(1, 3))
 
 def navigate_to_profile(driver, target):
     driver.get(target)
@@ -70,34 +82,17 @@ def extract_posts_with_bs(driver):
     for link in links:
         try:
             link_post = link.select_one("div.xu06os2.x1ok221b > span > div > span > span > span > a")
-            link = link_post.get('href') if link_post else None
+            href = link_post.get('href') if link_post else None
 
-            if link and link not in seen_links:
-                links_data.append(link)
-                seen_links.add(link)
+            # Filter: only include links that contain '/posts/' and not '/videos/'
+            if href and "/posts/" in href and "/videos/" not in href and href not in seen_links:
+                links_data.append(href)
+                seen_links.add(href)
                 
         except Exception as e:
             print("Error extracting link data:", e)
 
     return links_data
-
-def slow_scroll(driver, scroll_container_selector=None, step=300):
-    """
-    Scrolls slowly within the specified scrollable container or the entire page.
-    """
-    if scroll_container_selector:
-        # Locate the scrollable container
-        scroll_container = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, scroll_container_selector))
-        )
-        # Scroll within the container
-        driver.execute_script("arguments[0].scrollBy(0, arguments[1]);", scroll_container, step)
-    else:
-        # Scroll the entire page
-        driver.execute_script(f"window.scrollBy(0, {step});")
-    
-    time.sleep(random.uniform(1, 3))  # Simulate human-like delay
-
 
 def take_link(driver, max_links):
     all_links = []
@@ -114,89 +109,92 @@ def take_link(driver, max_links):
 
     return all_links[:max_links]
 
-def click_all_see_more_buttons(driver):
-    while True:
+def click_all_see_more(driver, timeout=5):
+    start_time = time.time()
+    
+    while time.time() - start_time < timeout:
         try:
-            # Locate all "See more..." buttons using the provided HTML structure
-            see_more_buttons = driver.find_elements(
-                By.CSS_SELECTOR,
-                "div.x1i10hfl.xjbqb8w.x1ejq31n.xd10rxx.x1sy0etr.x17r0tee.x972fbf.xcfux6l.x1qhh985.xm0m39n.x9f619.x1ypdohk.xt0psk2.xe8uvvx.xdj266r.x11i5rnm.xat24cr.x1mh8g0r.xexx8yu.x4uap5.x18d9i69.xkhd6sd.x16tdsg8.x1hl2dhg.xggy1nq.x1a2a7pz.xkrqix3.x1sur9pj.xzsf02u.x1s688f[role='button']"
-            )
-
+            see_more_buttons = driver.find_elements(By.XPATH, "//div[@role='button' and contains(text(), 'See more')]")
             if not see_more_buttons:
-                print("No more 'See more...' buttons found.")
                 break
 
-            # Click each "See more..." button
-            for button in see_more_buttons:
+            for btn in see_more_buttons:
                 try:
-                    # Scroll into view to make the button clickable
-                    driver.execute_script("arguments[0].scrollIntoView(true);", button)
-                    time.sleep(random.uniform(0.5, 1.5))  # Simulate human delay
-                    
-                    # Click the button
-                    ActionChains(driver).move_to_element(button).click().perform()
-                    print("Clicked a 'See more...' button.")
-                    
-                    # Wait for content to load dynamically
-                    time.sleep(random.uniform(2, 4))
-                except Exception as e:
-                    print(f"Failed to click a 'See more...' button: {e}")
-
+                    driver.execute_script("arguments[0].scrollIntoView(true);", btn)
+                    time.sleep(0.5)
+                    btn.click()
+                    time.sleep(1)
+                except Exception as click_error:
+                    continue  # Some buttons may disappear; skip errors
         except Exception as e:
-            print(f"Error while finding 'See more...' buttons: {e}")
             break
+        
+        time.sleep(2)  # Pause before re-checking
 
-def extract_comments_from_post(driver, post_url, max_comments=10):
+def extract_comments_from_post(driver, post_url, max_comments):
     driver.get(post_url)
     time.sleep(5)
 
-    #click_all_see_more_buttons(driver)
-
     comments = []
-    previous_comments_count = 0
-    #scroll_container_selector = "div.x14nfmen.x1s85apg.x5yr21d.xds687c.xg01cxk.x10l6tqk.x13vifvy.x1wsgiic.x19991ni.xwji4o3.x1kky2od.x1sd63oq"
+    same_count = 0
+    last_comment_len = 0
+    scroll_container = driver.find_element(By.CSS_SELECTOR, "div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m")
+
+    button = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//div[@role='button' and .//span[text()='Most relevant']]"))
+        )
+    button.click()
+
+    time.sleep(3)
+
+    all_comments_btn = WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.XPATH, "//div[@role='menuitem']//span[text()='All comments']"))
+    )
+    all_comments_btn.click()
 
     while len(comments) < max_comments:
-        # Scroll slowly to load more comments
-        #slow_scroll(driver, scroll_container_selector=scroll_container_selector, step=300)
-        time.sleep(random.uniform(2, 4))
+        click_all_see_more(driver)
+        slow_scroll(driver, scroll_container=scroll_container, step=500)
+        print("[[Comments Len:", len(comments))
 
-        # Extract visible comments
+        time.sleep(random.uniform(1, 3))
         soup = BeautifulSoup(driver.page_source, "html.parser")
-        comment_elements = soup.find_all("div", {"class": "x16hk5td x12rz0ws"})  # Adjust class based on FB structure
+        comment_elements = soup.find_all("div", {"class": "x16hk5td x12rz0ws"})
 
         for comment in comment_elements:
             try:
                 username = comment.find("span", {"class": "x3nfvp2"}).text.strip()
                 text = comment.find("span", {"class": "xudqn12"}).text.strip()
 
-                # Avoid duplicates by checking if the comment is already added
                 if {"username": username, "comment": text} not in comments:
                     comments.append({"username": username, "comment": text})
             except Exception as e:
                 print("Error extracting comment:", e)
 
-        # Break if no new comments are loaded after scrolling
-        if len(comments) == previous_comments_count:
-            print("No new comments loaded. Stopping.")
+        if len(comments) == last_comment_len:
+            same_count += 1
+            print(f"No new comments. same_count = {same_count}")
+        else:
+            same_count = 0
+            last_comment_len = len(comments)
+
+        # Break if no new comments were found 3 times in a row
+        if same_count >= 3:
+            print("No new comments found in 3 consecutive tries. Stopping.")
             break
 
-        previous_comments_count = len(comments)
-
-        # If we've reached the desired number of comments, stop
         if len(comments) >= max_comments:
             print(f"Collected {max_comments} comments. Stopping.")
             break
 
-    return comments[:max_comments]  # Return only the first `max_comments`
+    return comments[:max_comments]
 
 def visit_links(driver, post_links):
     all_comments = []
 
     for post_link in post_links:
         print(f"Scraping comments from post: {post_link}")
-        comments = extract_comments_from_post(driver, post_link, max_comments=10)
+        comments = extract_comments_from_post(driver, post_link, 30)
         
         # Print the post link and its comments
         print(f"\nPost Link: {post_link}")
@@ -234,38 +232,20 @@ def save_mongo(data):
 
     print(f"Saved {inserted_count} new comments to MongoDB.")
 
-def close(driver):
-    if driver:
-        driver.quit()
-
-def main():
+if __name__ == "__main__":
     driver = initialize_driver()
-    
+
     login(driver, email, password)
 
     navigate_to_profile(driver, target)
 
-    posts_links = take_link(driver, max_links=10)
+    post_links = take_link(driver, max_links=5)
 
-    for link in posts_links:
-        print(link)
+    all_comments = visit_links(driver, post_links)
 
-    all_comments = visit_links(driver, posts_links)
-    
     if all_comments:
         save_mongo(all_comments)
     else:
         print("No comments were scraped?")
-    
+
     time.sleep(2)
-
-def schedule_crawling():
-    main()
-    # schedule.every().day.at("13:25").do(main)
-    
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(10)
-
-if __name__ == "__main__":
-    schedule_crawling()
