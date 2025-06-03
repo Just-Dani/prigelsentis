@@ -4,7 +4,7 @@ import threading
 from app.helpers import schedule_sentimen
 from app.crawling.crawling import schedule_crawling as twitter_schedule_crawling
 from app.crawling.instagram_scrapper import schedule_crawling as instagram_schedule_crawling
-from app.crawling.alin import schedule_crawling as facebook_schedule_crawling
+from app.crawling.facebook_scrapper import schedule_crawling as facebook_schedule_crawling
 from pymongo import MongoClient
 
 app = Flask(__name__)
@@ -26,10 +26,10 @@ if __name__ == '__main__':
     instagram_crawling_thread = threading.Thread(target=instagram_schedule_crawling)
     instagram_crawling_thread.start()
 
-    #facebook_crawling_thread = threading.Thread(target=facebook_schedule_crawling)
-    #facebook_crawling_thread.start()
+    facebook_crawling_thread = threading.Thread(target=facebook_schedule_crawling)
+    facebook_crawling_thread.start()
     
-    sentiment_thread = threading.Thread(target=schedule_sentimen, args=(tweets_collection, insta_collection, facebook_collection, False))
+    sentiment_thread = threading.Thread(target=schedule_sentimen, args=(tweets_collection, insta_collection, facebook_collection, True))
     sentiment_thread.start()
     
     from app.routes import app as routes_app

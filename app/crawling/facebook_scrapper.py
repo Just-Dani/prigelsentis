@@ -9,6 +9,7 @@ import random
 import pymongo
 import json
 import schedule
+from datetime import datetime, timedelta
 
 email = "johnwick67319@gmail.com"
 password = "herofavorit123"
@@ -52,7 +53,7 @@ def login(driver, email, password):
         .click()\
         .perform()
 
-    time.sleep(30)
+    time.sleep(25)
 
 def slow_scroll(driver, scroll_container=None, step=300):
     """
@@ -139,18 +140,22 @@ def extract_comments_from_post(driver, post_url, max_comments):
     same_count = 0
     last_comment_len = 0
     scroll_container = driver.find_element(By.CSS_SELECTOR, "div.xb57i2i.x1q594ok.x5lxg6s.x78zum5.xdt5ytf.x6ikm8r.x1ja2u2z.x1pq812k.x1rohswg.xfk6m8.x1yqm8si.xjx87ck.xx8ngbg.xwo3gff.x1n2onr6.x1oyok0e.x1odjw0f.x1iyjqo2.xy5w88m")
+    try:
+        button = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//div[@role='button' and .//span[text()='Most relevant']]"))
+            )
+        button.click()
 
-    button = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//div[@role='button' and .//span[text()='Most relevant']]"))
+        time.sleep(2)
+
+        all_comments_btn = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, "//div[@role='menuitem']//span[text()='All comments']"))
         )
-    button.click()
+        all_comments_btn.click()
 
-    time.sleep(3)
-
-    all_comments_btn = WebDriverWait(driver, 10).until(
-        EC.element_to_be_clickable((By.XPATH, "//div[@role='menuitem']//span[text()='All comments']"))
-    )
-    all_comments_btn.click()
+        time.sleep(2)
+    except TimeoutError:
+        print("No most relevant button")
 
     while len(comments) < max_comments:
         click_all_see_more(driver)
@@ -160,17 +165,55 @@ def extract_comments_from_post(driver, post_url, max_comments):
         time.sleep(random.uniform(1, 3))
         soup = BeautifulSoup(driver.page_source, "html.parser")
         comment_elements = soup.find_all("div", {"class": "x16hk5td x12rz0ws"})
-
+        
         for comment in comment_elements:
             try:
                 username = comment.find("span", {"class": "x3nfvp2"}).text.strip()
                 text = comment.find("span", {"class": "xudqn12"}).text.strip()
+                timeelement = comment.select_one("div.x6s0dn4.x3nfvp2 > ul > li > span > div > a")
+                date = timeelement.get_text(strip=True) if timeelement else None
+                print(date)
+                normalized_date = "Unknown Date"
+                if date:
+                    now = datetime.now()
 
-                if {"username": username, "comment": text} not in comments:
-                    comments.append({"username": username, "comment": text})
+                    if ' ' not in date:
+                        # Handle short relative time formats like "2h", "3m", "5d"
+                        if 'h' in date:
+                            # e.g., "2h" -> 2 hours ago -> fallback to today
+                            normalized_date = now.strftime("%B %d, %Y")
+
+                        elif 'm' in date:
+                            # e.g., "3m" -> 3 minutes ago -> same day
+                            normalized_date = now.strftime("%B %d, %Y")
+
+                        elif 'd' in date:
+                            # e.g., "3d" -> 3 days ago
+                            try:
+                                days_ago = int(date[0])
+                                normalized_date = (now - timedelta(days=days_ago)).strftime("%B %d, %Y")
+                            except ValueError:
+                                normalized_date = now.strftime("%B %d, %Y")  # fallback
+
+                    elif '2024' in date or '2023' in date or '2022' in date:
+                        normalized_date = date
+
+                    else:
+                        # Assume format like "Oct 15" or "Sep 3"
+                        normalized_date = f"{' '.join(date.split()[:2])}, {now.year}"
+                
+                comment_data = {
+                    "username": username,
+                    "comment": text,
+                    "date": normalized_date
+                }
+
+                if comment_data not in comments:
+                    comments.append(comment_data)
+                    
             except Exception as e:
                 print("Error extracting comment:", e)
-
+        
         if len(comments) == last_comment_len:
             same_count += 1
             print(f"No new comments. same_count = {same_count}")
@@ -200,9 +243,10 @@ def visit_links(driver, post_links):
         print(f"\nPost Link: {post_link}")
         if comments:
             for idx, comment in enumerate(comments, start=1):
-                print(f"{idx}. Username: {comment['username']}, Comment: {comment['comment']}")
+                print(f"{idx}. Date: {comment['date']}, Username: {comment['username']}, Comment: {comment['comment']}")
                 all_comments.append({
                     "URL": post_link,
+                    "Date": comment["date"],
                     "Username": comment["username"],
                     "Comment": comment["comment"]
                 })
@@ -222,6 +266,7 @@ def save_mongo(data):
     for item in data:
         existing = collection.find_one({
             "URL": item["URL"],
+            "Date": item["Date"],
             "Username": item["Username"],
             "Comment": item["Comment"]
         })
@@ -232,7 +277,7 @@ def save_mongo(data):
 
     print(f"Saved {inserted_count} new comments to MongoDB.")
 
-if __name__ == "__main__":
+def main():
     driver = initialize_driver()
 
     login(driver, email, password)
@@ -249,3 +294,14 @@ if __name__ == "__main__":
         print("No comments were scraped?")
 
     time.sleep(2)
+
+def schedule_crawling():
+    main()
+    # schedule.every().day.at("13:25").do(main)  # Atur waktu sesuai kebutuhan Anda
+    
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(10)
+        
+if __name__ == "__main__":
+    schedule_crawling()

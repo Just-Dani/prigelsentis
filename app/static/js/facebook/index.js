@@ -1,91 +1,167 @@
-// Initialize the Facebook dashboard functionality
-document.addEventListener('DOMContentLoaded', function() {
-    // Load data for Facebook dashboard
-    loadFacebookData();
-    
-    // Initialize search functionality
-    document.getElementById('searchBtn').addEventListener('click', function() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        filterFacebookComments(searchTerm);
-    });
-});
+document.addEventListener("DOMContentLoaded", function () {
+    console.log("DOM fully loaded (Facebook)");
 
-function loadFacebookData() {
-    // Here you would typically make an API call to your backend
-    // For now, we'll use mock data
-    const mockData = [
-        {
-            date: '2023-11-15',
-            url: 'https://facebook.com/post/123',
-            username: 'user1',
-            comment: 'Great post!',
-            sentiment: 'Positif'
-        },
-        {
-            date: '2023-11-14',
-            url: 'https://facebook.com/post/456',
-            username: 'user2',
-            comment: 'I think this is okay',
-            sentiment: 'Netral'
-        },
-        {
-            date: '2023-11-13',
-            url: 'https://facebook.com/post/789',
-            username: 'user3',
-            comment: 'I disagree with this',
-            sentiment: 'Negatif'
-        }
-    ];
-    
-    renderFacebookTable(mockData);
-}
+    const btnNavbarNotification = document.getElementById("btnNavbarNotification");
+    let updateCounter = 0;
+    const tbody = document.getElementById("datatablesSimple").getElementsByTagName("tbody")[0];
+    const notificationDropdown = document.getElementById("notificationDropdown");
 
-function renderFacebookTable(data) {
-    const tableBody = document.querySelector('#datatablesSimple tbody');
-    tableBody.innerHTML = '';
-    
-    data.forEach(item => {
-        const row = document.createElement('tr');
-        
-        row.innerHTML = `
-            <td>${item.date}</td>
-            <td><a href="${item.url}" target="_blank">View Post</a></td>
-            <td>${item.username}</td>
-            <td>${item.comment}</td>
-            <td>${item.sentiment}</td>
-            <td>
-                <button class="btn btn-danger btn-sm delete-btn" data-id="${item.url}">Delete</button>
-            </td>
-        `;
-        
-        tableBody.appendChild(row);
-    });
-    
-    // Add event listeners to delete buttons
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const postId = this.getAttribute('data-id');
-            deleteFacebookComment(postId);
-        });
-    });
-}
+    function updateTable(data) {
+        if (data.status === 'success') {
+            const commentsArray = Array.isArray(data.result_data) ? data.result_data : [];
+            commentsArray.sort((a, b) => new Date(b.Date) - new Date(a.Date));
 
-function filterFacebookComments(searchTerm) {
-    // Implement search functionality
-    const rows = document.querySelectorAll('#datatablesSimple tbody tr');
-    
-    rows.forEach(row => {
-        const comment = row.cells[3].textContent.toLowerCase();
-        if (comment.includes(searchTerm)) {
-            row.style.display = '';
+            tbody.innerHTML = '';
+
+            if (commentsArray.length > 0) {
+                commentsArray.forEach(comment => {
+                    const row = document.createElement("tr");
+
+                    const dateCell = document.createElement("td");
+                    dateCell.textContent = new Date(comment.Date).toLocaleDateString();
+                    row.appendChild(dateCell);
+
+                    const urlCell = document.createElement("td");
+                    urlCell.innerHTML = `<a href="${comment.URL}" target="_blank">${comment.URL}</a>`;
+                    row.appendChild(urlCell);
+
+                    const usernameCell = document.createElement("td");
+                    usernameCell.textContent = comment.Username;
+                    row.appendChild(usernameCell);
+
+                    const commentCell = document.createElement("td");
+                    commentCell.textContent = comment.Comment;
+                    row.appendChild(commentCell);
+
+                    const sentimenCell = document.createElement("td");
+                    sentimenCell.textContent = comment.sentimen;
+                    row.appendChild(sentimenCell);
+
+                    const deleteCell = document.createElement("td");
+                    const deleteButton = document.createElement("button");
+                    deleteButton.className = "btn btn-danger";
+                    deleteButton.innerHTML = '<i class="fas fa-trash-alt"></i>';
+                    deleteButton.onclick = function () {
+                        deleteData(comment._id);
+                    };
+                    deleteCell.appendChild(deleteButton);
+                    row.appendChild(deleteCell);
+
+                    row.addEventListener('click', function () {
+                        if (comment.sentimen === 'Positif') {
+                            row.classList.toggle('sentimen-positif');
+                        } else if (comment.sentimen === 'Netral') {
+                            row.classList.toggle('sentimen-netral');
+                        } else if (comment.sentimen === 'Negatif') {
+                            row.classList.toggle('sentimen-negatif');
+                        }
+                    });
+
+                    tbody.appendChild(row);
+                    updateCounter++;
+                });
+
+                const negativeNotificationComments = commentsArray
+                    .filter(comment => comment.sentimen === 'Negatif')
+                    .sort((a, b) => a.grade - b.grade)
+                    .slice(0, 5);
+
+                notificationDropdown.innerHTML = '';
+
+                negativeNotificationComments.forEach(comment => {
+                    const notificationItem = document.createElement('li');
+                    notificationItem.classList.add("d-flex", "align-items-center", "justify-content-between");
+                    notificationItem.innerHTML = `
+                        <span>
+                            <a class="dropdown-item" href="${comment.URL}" target="_blank">${comment.Comment}</a>
+                        </span>
+                        <span class="ms-2 d-flex align-items-center">
+                            <button class="btn btn-sm btn-secondary me-2" onclick="window.open('${comment.URL}', '_blank')">${comment.grade}</button>
+                        </span>
+                    `;
+                    notificationDropdown.appendChild(notificationItem);
+                });
+
+                btnNavbarNotification.style.display = updateCounter > 0 ? 'block' : 'none';
+
+            } else {
+                console.error('No Facebook comments found.');
+            }
         } else {
-            row.style.display = 'none';
+            console.error('Error processing Facebook comments:', data.status);
+        }
+    }
+    
+    function deleteData(id) {
+        fetch(`/delete_facebook_data/${id}`, {
+            method: 'DELETE',
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    getData(); // Refresh after deletion
+                } else {
+                    console.error('Error deleting Facebook data:', data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error deleting Facebook data:', error);
+            });
+    }
+
+    function getData() {
+        fetch('/facebook_data')
+            .then(response => response.json())
+            .then(data => {
+                console.log("Facebook data received:", data);
+                updateTable(data);
+            })
+            .catch(error => {
+                console.error('Error fetching Facebook data:', error);
+            });
+    }
+
+    getData();
+
+    const searchInput = document.getElementById("searchInput");
+    const searchBtn = document.getElementById("searchBtn");
+
+    function searchFacebook(query) {
+        fetch(`/search_facebook?q=${query}`)
+            .then(response => response.json())
+            .then(data => {
+                console.log(`Search results for "${query}" (Facebook):`, data);
+                updateTable(data);
+            })
+            .catch(error => {
+                console.error('Error searching Facebook data:', error);
+            });
+    }
+
+    searchBtn.addEventListener('click', function () {
+        const query = searchInput.value.trim().toLowerCase();
+        if (query !== '') {
+            searchFacebook(query);
         }
     });
-}
 
-function deleteFacebookComment(postId) {
-    // Here you would typically make an API call to delete the comment
-    console.log(`Deleting Facebook comment with ID: ${postId}`);
-    alert(`Comment from post ${postId} would be deleted (simulated)`);
-}
+    searchInput.addEventListener('keypress', function (event) {
+        if (event.key === 'Enter') {
+            const query = searchInput.value.trim().toLowerCase();
+            if (query !== '') {
+                searchFacebook(query);
+            }
+        }
+    });
+
+    setInterval(getData, 180000); // Refresh every 3 minutes
+
+    const sidebarToggle = document.body.querySelector('#sidebarToggle');
+    if (sidebarToggle) {
+        sidebarToggle.addEventListener('click', event => {
+            event.preventDefault();
+            document.body.classList.toggle('sb-sidenav-toggled');
+            localStorage.setItem('sb|sidebar-toggle', document.body.classList.contains('sb-sidenav-toggled'));
+        });
+    }
+});
