@@ -1,5 +1,9 @@
 ﻿# SENTIS2025
+Jika belum ada folder SENTIS dengan git, lakukan: <br />
 git clone https://github.com/Just-Dani/prigelsentis.git
+
+Jika sudah ada tapi belum up to date, lakukan: <br />
+git pull
 
 NEW <br />
 Crawling system flowchart <br />
