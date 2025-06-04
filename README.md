@@ -19,9 +19,9 @@ sentiment_thread = threading.Thread(target=schedule_sentimen, args=(tweets_colle
     
 To start facebook crawling manually, run "py ./app/crawling/facebook_scrapper.py" <br />
 
-Cara untuk push update ke github: <br />
+Cara untuk push update ke github:
 1. git branch
-2. git add . <br />
+2. git add .
 3. git commit -m "message"
 4. git pull
 5. git push
