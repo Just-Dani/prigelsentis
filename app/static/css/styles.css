@@ -1777,6 +1777,10 @@ progress {
     --bs-gutter-y: 3rem;
   }
 }
+.table td {
+    word-wrap: break-word;    /* Break long words */
+    word-break: break-all;    /* Break URLs */
+}
 .table, .datatable-table {
   --bs-table-color: var(--bs-body-color);
   --bs-table-bg: transparent;

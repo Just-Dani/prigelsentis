@@ -245,8 +245,8 @@ def visit_links(driver, post_links):
             for idx, comment in enumerate(comments, start=1):
                 print(f"{idx}. Date: {comment['date']}, Username: {comment['username']}, Comment: {comment['comment']}")
                 all_comments.append({
-                    "URL": post_link,
                     "Date": comment["date"],
+                    "URL": post_link,
                     "Username": comment["username"],
                     "Comment": comment["comment"]
                 })
@@ -265,8 +265,8 @@ def save_mongo(data):
     inserted_count = 0
     for item in data:
         existing = collection.find_one({
-            "URL": item["URL"],
             "Date": item["Date"],
+            "URL": item["URL"],
             "Username": item["Username"],
             "Comment": item["Comment"]
         })
@@ -298,7 +298,7 @@ def main():
 def schedule_crawling():
     main()
     # schedule.every().day.at("13:25").do(main)  # Atur waktu sesuai kebutuhan Anda
-    
+
     # while True:
     #     schedule.run_pending()
     #     time.sleep(10)

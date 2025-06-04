@@ -153,6 +153,8 @@ def get_data():
 
     return jsonify({'status': 'success', 'result_data': formatted_data})
 
+
+
 @app.route('/search_tweets', methods=['GET'])
 def search_tweets():
     search_query = request.args.get('q', '').lower()
@@ -208,7 +210,65 @@ def search_instagram():
         }
         formatted_data.append(formatted_post)
     return jsonify({'status': 'success', 'result_data': formatted_data})
+
+@app.route('/facebook_data', methods=['GET'])
+def get_facebook_data():
+    facebook_data = list(facebook_collection.find({}, {
+        '_id': 1,
+        'URL': 1,
+        'Username': 1,
+        'Comment': 1,
+        'Date': 1,
+        'sentimen': 1,
+        'grade': 1  # include grade
+    }))
     
+    formatted_data = []
+    for post in facebook_data:
+        formatted_post = {
+            '_id': str(post['_id']),
+            'Date': post.get('Date', ''),
+            'URL': post.get('URL', ''),
+            'Username': post.get('Username', ''),
+            'Comment': post.get('Comment', ''),
+            'sentimen': post.get('sentimen', ''),
+            'grade': post.get('grade', '')
+        }
+        formatted_data.append(formatted_post)
+
+    return jsonify({'status': 'success', 'result_data': formatted_data})
+
+@app.route('/search_facebook', methods=['GET'])
+def search_facebook():
+    search_query = request.args.get('q', '').lower()
+    matched_posts = list(facebook_collection.find({'$or': [
+        {'Username': {'$regex': search_query, '$options': 'i'}},
+        {'Comment': {'$regex': search_query, '$options': 'i'}}
+    ]}, {
+        '_id': 1,
+        'URL': 1,
+        'Username': 1,
+        'Comment': 1,
+        'Date': 1,
+        'sentimen': 1,
+        'grade': 1  # include grade
+    }))
+    
+    formatted_data = []
+    for post in matched_posts:
+        formatted_post = {
+            '_id': str(post['_id']),
+            'Date': post.get('Date', ''),
+            'URL': post.get('URL', ''),
+            'Username': post.get('Username', ''),
+            'Comment': post.get('Comment', ''),
+            'sentimen': post.get('sentimen', ''),
+            'grade': post.get('grade', '')
+        }
+        formatted_data.append(formatted_post)
+
+    return jsonify({'status': 'success', 'result_data': formatted_data})
+
 if __name__ == "__main__":
     app.run()
     
