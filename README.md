@@ -7,4 +7,13 @@ Crawling system flowchart <br />
 
 Notes <br />
 To start the application, run run.py <br />
-To start immediately, change line [32] false into true <br />
+To start the model immediately, change line [32] false into true <br />
+
+To start facebook crawling manually, run ./app/crawling/facebook_scrapper.py <br />
+
+Cara untuk push update ke github: <br />
+1. git branch
+2. git add . <br />
+3. git commit -m "message"
+4. git pull
+5. git push
