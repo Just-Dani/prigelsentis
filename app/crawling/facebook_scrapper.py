@@ -164,7 +164,7 @@ def extract_comments_from_post(driver, post_url, max_comments):
 
         time.sleep(random.uniform(1, 3))
         soup = BeautifulSoup(driver.page_source, "html.parser")
-        comment_elements = soup.find_all("div", {"class": "x16hk5td x12rz0ws"})
+        comment_elements = soup.find_all("div", {"class": "x18xomjl xbcz3fp"})
         
         for comment in comment_elements:
             try:
@@ -297,7 +297,7 @@ def main():
 
 def schedule_crawling():
     main()
-    # schedule.every().day.at("13:25").do(main)  # Atur waktu sesuai kebutuhan Anda
+    # schedule.every().day.at("13:25").do(main)
 
     # while True:
     #     schedule.run_pending()
