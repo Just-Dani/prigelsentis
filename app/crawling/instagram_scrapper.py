@@ -162,11 +162,12 @@ def main():
     save_mongo('comments_usernames.csv')
     
 def schedule_crawling():
-    schedule.every().day.at("13:25").do(main)  # Atur waktu sesuai kebutuhan Anda
+    main()
+    # schedule.every().day.at("13:25").do(main)  # Atur waktu sesuai kebutuhan Anda
     
-    while True:
-        schedule.run_pending()
-        time.sleep(10)
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(10)
 
 if __name__ == "__main__":
     # main()

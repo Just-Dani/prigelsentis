@@ -20,11 +20,11 @@ facebook_collection = db.facebook
 
 if __name__ == '__main__':
 
-    twitter_crawling_thread = threading.Thread(target=twitter_schedule_crawling)
-    twitter_crawling_thread.start()
+    #twitter_crawling_thread = threading.Thread(target=twitter_schedule_crawling)
+    #twitter_crawling_thread.start()
     
-    instagram_crawling_thread = threading.Thread(target=instagram_schedule_crawling)
-    instagram_crawling_thread.start()
+    #instagram_crawling_thread = threading.Thread(target=instagram_schedule_crawling)
+    #instagram_crawling_thread.start()
 
     # facebook_crawling_thread = threading.Thread(target=facebook_schedule_crawling)
     # facebook_crawling_thread.start()

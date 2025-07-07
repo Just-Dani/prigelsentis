@@ -16,7 +16,7 @@ def run_crawling():
     
     search_keyword = f'unnes since:{date_format} until:{current_date}'
     
-    npx_command = f'npx --yes tweet-harvest@latest -o "{filename}" -s "{search_keyword}" -l {limit} --token "Isi Auth_Token Twitter Anda"'
+    npx_command = f'npx --yes tweet-harvest@latest -o "{filename}" -s "{search_keyword}" -l {limit} --token "fc14d42b580aedaa62f458d1fbc839f16cbebb3c"'
     result = subprocess.run(npx_command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, encoding="utf-8")
     print("Subprocess Output:", result.stdout)
     print("Subprocess Errors:", result.stderr)
@@ -68,10 +68,11 @@ def save_mongo(filepath):
         print(f"Terjadi kesalahan: {e}")
 
 def schedule_crawling():
-    schedule.every().day.at("13:25").do(run_crawling)
-    while True:
-        schedule.run_pending()
-        time.sleep(10)
+    run_crawling()
+    # schedule.every().day.at("13:25").do(run_crawling)
+    # while True:
+    #     schedule.run_pending()
+    #     time.sleep(10)
         
 if __name__ == "__main__":
     # run_crawling()

@@ -1,3 +1,7 @@
 {
-    "git.ignoreLimitWarning": true
+    "git.ignoreLimitWarning": true,
+    "workbench.editorAssociations": {
+        "*.pth": "default",
+        "file:/**/*.xlsx": "jupyter-data-wrangler"
+    }
 }
